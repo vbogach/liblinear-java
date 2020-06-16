@@ -1,15 +1,6 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-}
-
 plugins {
     id 'java-library'
-    id 'maven-publish'
-    id 'signing'
     id 'jacoco'
-    id 'com.github.kt3k.coveralls' version '2.8.4'
     id 'de.undercouch.download' version '3.4.3'
     id 'me.champeau.gradle.jmh' version '0.4.8'
 }
@@ -40,74 +31,6 @@ task sourceJar(type: Jar) {
 task javadocJar(type: Jar, dependsOn: javadoc) {
     archiveClassifier = "javadoc"
     from javadoc.destinationDir
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            groupId = 'de.bwaldvogel'
-            artifactId = 'liblinear'
-            version = project.version
-            pom {
-                name = title
-                description = 'Java port of Liblinear'
-                url = 'https://github.com/bwaldvogel/liblinear'
-                inceptionYear = '2008'
-
-                licenses {
-                    license {
-                        name = 'The BSD License'
-                        url = 'http://www.opensource.org/licenses/bsd-license.php'
-                        distribution = 'repo'
-                    }
-                }
-                developers {
-                    developer {
-                        id = 'bwaldvogel'
-                        name = 'Benedikt Waldvogel'
-                        email = 'mail@bwaldvogel.de'
-                    }
-                }
-                scm {
-                    url = 'git@github.com:bwaldvogel/liblinear.git'
-                    connection = 'scm:git:git@github.com:bwaldvogel/liblinear.git'
-                    developerConnection = 'scm:git:git@github.com:bwaldvogel/liblinear.git'
-                }
-            }
-
-            from components.java
-
-            artifact sourceJar
-            artifact javadocJar
-
-            versionMapping {
-                usage('java-api') {
-                    fromResolutionOf('runtimeClasspath')
-                }
-                usage('java-runtime') {
-                    fromResolutionResult()
-                }
-            }
-        }
-    }
-    repositories {
-        maven {
-            url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-            credentials {
-                username = project.hasProperty('nexusUsername') ? project.property('nexusUsername') : System.getenv('NEXUS_USERNAME')
-                password = project.hasProperty('nexusPassword') ? project.property('nexusPassword') : System.getenv('NEXUS_PASSWORD')
-            }
-        }
-    }
-}
-
-signing {
-    useGpgCmd()
-    sign publishing.publications.mavenJava
-}
-
-repositories {
-    mavenCentral()
 }
 
 jacocoTestReport {
