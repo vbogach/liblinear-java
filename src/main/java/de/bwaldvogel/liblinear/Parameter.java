@@ -20,6 +20,8 @@ public final class Parameter implements Cloneable {
 
     double     p = 0.1;
 
+    double[]   ovrRestWeights = null;
+
     /**
      * Initial-solution specification (only supported for {@link SolverType#L2R_LR} and {@link SolverType#L2R_L2LOSS_SVC})
      */
@@ -64,17 +66,37 @@ public final class Parameter implements Cloneable {
      *
      * <p>If you do not want to change penalty for any of the classes,
      * just set nr_weight to 0.</p>
+     * 
+     * <p>ovrRestWeights is used to set up negative (Rest class) weights in case of multi-class
+     * OVR classification.</p>
      */
-    public void setWeights(double[] weights, int[] weightLabels) {
+    public void setWeights(double[] weights, double[] ovrRestWeights, int[] weightLabels) {
         if (weights == null) throw new IllegalArgumentException("'weight' must not be null");
         if (weightLabels == null || weightLabels.length != weights.length)
             throw new IllegalArgumentException("'weightLabels' must have same length as 'weight'");
         this.weightLabel = copyOf(weightLabels, weightLabels.length);
         this.weight = copyOf(weights, weights.length);
+
+        if (ovrRestWeights == null) {
+            this.ovrRestWeights = null;
+        }
+        else {
+            if (weightLabels.length != ovrRestWeights.length)
+                throw new IllegalArgumentException("'weightLabels' must have same length as 'ovrRestWeights'");
+
+            this.ovrRestWeights = copyOf(ovrRestWeights, ovrRestWeights.length);
+        }
     }
 
     /**
-     * @see #setWeights(double[], int[])
+     * @see #setWeights(double[], double[], int[])
+     */
+    public void setWeights(double[] weights, int[] weightLabels) {
+        setWeights(weights, null, weightLabels);
+    }
+
+    /**
+     * @see #setWeights(double[], double[], int[])
      */
     public double[] getWeights() {
         if (weight == null) {
@@ -84,7 +106,17 @@ public final class Parameter implements Cloneable {
     }
 
     /**
-     * @see #setWeights(double[], int[])
+     * @see #setWeights(double[], double[], int[])
+     */
+    public double[] getOvrRestWeights() {
+        if(ovrRestWeights == null) {
+            return null;
+        }
+        return copyOf(ovrRestWeights, ovrRestWeights.length);
+    }
+
+    /**
+     * @see #setWeights(double[], double[], int[])
      */
     public int[] getWeightLabels() {
         if (weightLabel == null) {
@@ -95,11 +127,20 @@ public final class Parameter implements Cloneable {
 
     /**
      * the number of weights
-     * @see #setWeights(double[], int[])
+     * @see #setWeights(double[], double[], int[])
      */
     public int getNumWeights() {
         if (weight == null) return 0;
         return weight.length;
+    }
+
+    /**
+     * the number of OVR rest class weights
+     * @see #setWeights(double[], double[], int[])
+     */
+    public int getNumOvrRestWeights() {
+        if (ovrRestWeights == null) return 0;
+        return ovrRestWeights.length;
     }
 
     /**

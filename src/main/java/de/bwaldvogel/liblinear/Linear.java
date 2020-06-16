@@ -1818,6 +1818,19 @@ public class Linear {
 
                     train_one(sub_prob, param, model.w, weighted_C[0], weighted_C[1]);
                 } else {
+                    // calculate weighted C for the Rest class
+                    double[] weighted_C_rest = new double[nr_class];
+                    for (int i = 0; i < nr_class; i++)
+                        weighted_C_rest[i] = param.C;
+                    for (int i = 0; i < param.getNumOvrRestWeights(); i++) {
+                        int j;
+                        for (j = 0; j < nr_class; j++)
+                            if (param.weightLabel[i] == label[j]) break;
+
+                        if (j == nr_class) throw new IllegalArgumentException("class label " + param.weightLabel[i] + " specified in weight is not found");
+                        weighted_C_rest[j] *= param.ovrRestWeights[i];
+                    }
+
                     model.w = new double[w_size * nr_class];
                     double[] w = new double[w_size];
                     for (int i = 0; i < nr_class; i++) {
@@ -1839,7 +1852,7 @@ public class Linear {
                             for (int j = 0; j < w_size; j++)
                                 w[j] = 0;
 
-                        train_one(sub_prob, param, w, weighted_C[i], param.C);
+                        train_one(sub_prob, param, w, weighted_C[i], weighted_C_rest[i]);
 
                         for (int j = 0; j < n; j++)
                             model.w[j * nr_class + i] = w[j];
